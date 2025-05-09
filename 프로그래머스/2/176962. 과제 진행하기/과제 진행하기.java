@@ -2,57 +2,55 @@ import java.util.*;
 
 class Solution {
     public String[] solution(String[][] plans) {
-        List<String> list = new ArrayList<>();
-        Stack<String[]> stack = new Stack<>();
         
-        for(String[] p : plans) {
-            String[] time = p[1].split(":");
-            int minutes = Integer.parseInt(time[0]) * 60 + Integer.parseInt(time[1]);
-            p[1] = Integer.toString(minutes);            
+        int size = plans.length;
+        
+        List<String> answer = new ArrayList<>();
+        Stack<Integer> stack = new Stack<>();
+        int[][] np = new int[size][3];
+        
+        for(int i = 0; i < size; i++) {
+            String[] tmp = plans[i][1].split(":");
+            int time = Integer.parseInt(tmp[0]) * 60 + Integer.parseInt(tmp[1]);
+            np[i][0] = i; // 기존 인덱스
+            np[i][1] = time; // start 분 변환
+            np[i][2] = Integer.parseInt(plans[i][2]); // 과제 playtime
         }
         
-        Arrays.sort(plans, (a, b) -> {
-            return Integer.parseInt(a[1]) - Integer.parseInt(b[1]);
-        });
+        Arrays.sort(np, (a, b) -> Integer.compare(a[1], b[1])); // 새로운 np 배열에 대하여 시작시간 순으로 정렬
         
-        for(int i = 1; i < plans.length; i ++) {
-            String[] cur = plans[i - 1];
-            String[] next = plans[i];
+        for(int i = 0; i < size - 1; i ++) {
             
-            int curTotal = Integer.parseInt(cur[1]) + Integer.parseInt(cur[2]);
-            int nextStart = Integer.parseInt(next[1]);
+            int diff = np[i + 1][1] - np[i][1]; // 앞 뒤 시작시간의 차
+            int pt = np[i][2]; // 현재 playtime
             
-            if(curTotal <= nextStart) { // 현재 과제를 한번에 다 했을 때 다음 것 시간에 아직 못미친다면 (한번에 완료)
-                list.add(cur[0]);
-                if(nextStart - curTotal > 0) { // 다 하고도 시간이 남으면
-                    int remain = nextStart - curTotal;
-                    while(remain > 0 && !stack.isEmpty()) { // stack에 들어가있는 과제 하기
-                        String[] work = stack.pop();
-                        int time = Integer.parseInt(work[2]);
-                        if(remain - time >= 0) {
-                            list.add(work[0]);
-                            remain -= time;
-                        }
-                        else {
-                            work[2] = Integer.toString(time - remain);
-                            stack.push(work);
-                            remain = 0;
-                        }
+            if(diff < pt) { // 한번에 다 끝낼 수 없으면 스택 삽입, diff 만큼만 감소
+                stack.push(i);
+                np[i][2] -= diff;
+            } else { // 현재 playtime 보다 diff 가 더 크거나 같으면
+                answer.add(plans[np[i][0]][0]); // 정답에 추가
+                diff -= pt;
+                while(diff > 0) { // diff 가 남았다면
+                    if(stack.isEmpty()) break;
+                    int idx = stack.pop();
+                    if(diff >= np[idx][2]) { // 스택에 남아있는 과제 완료
+                        answer.add(plans[np[idx][0]][0]);
+                        diff -= np[idx][2];
+                    } else {
+                        stack.push(idx);
+                        np[idx][2] -= diff; // 가능한 만큼만 완료
+                        diff = 0;
                     }
                 }
-            } else { // 중간에 다음 과제로 넘어가야 할 때
-                int cap = nextStart - Integer.parseInt(cur[1]);
-                cur[2] = Integer.toString(Integer.parseInt(cur[2]) - cap);
-                stack.push(cur);
             }
         }
         
-        // 마지막 거 List에 넣고, stack 순서대로 list
-        list.add(plans[plans.length - 1][0]);
+        answer.add(plans[np[size - 1][0]][0]);
         while(!stack.isEmpty()) {
-            list.add(stack.pop()[0]);
+            int idx = stack.pop();
+            answer.add(plans[np[idx][0]][0]);
         }
         
-        return list.toArray(new String[list.size()]);
+        return answer.toArray(new String[size]);
     }
 }
