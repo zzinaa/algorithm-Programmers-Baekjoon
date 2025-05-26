@@ -1,23 +1,24 @@
 import java.util.*;
 
-class Node {
-    int num;
-    Node prev;
-    Node next;
-    
-    public Node(int num) {
-        this.num = num;
-        this.prev = null;
-        this.next = null;
-    }
-}
-
 class Solution {
+    
+    class Node {
+        int num;
+        Node prev;
+        Node next;
+        
+        public Node(int num) {
+            this.num = num;
+            this.prev = null;
+            this.next = null;
+        }
+    }
+    
     public String solution(int n, int k, String[] cmd) {
         
-        Stack<Node> del = new Stack<>();
-        Node head = null;
+        Stack<Node> stack = new Stack<>();
         Node cur = new Node(0);
+        Node head = null;
         if(k == 0) head = cur;
         
         for(int i = 1; i < n; i ++) {
@@ -25,48 +26,41 @@ class Solution {
             cur.next = node;
             node.prev = cur;
             cur = node;
-            if(k == i) head = cur;
+            if(i == k) head = cur;
         }
         
-        for(int i = 0; i < cmd.length; i ++) {
-            char cs = cmd[i].charAt(0);
-            
-            if(cs == 'U') {
-                int cn = Integer.parseInt(cmd[i].split(" ")[1]);
-                for(int j = 0; j < cn; j ++) {
+        for(String c : cmd) {
+            char cc = c.charAt(0);
+            if(cc == 'U') {
+                int cn = Integer.parseInt(c.split(" ")[1]);
+                for(int i = 0; i < cn; i ++) {
                     head = head.prev;
                 }
-            } else if (cs == 'D') {
-                int cn = Integer.parseInt(cmd[i].split(" ")[1]);
-                for(int j = 0; j < cn; j ++) {
+            } else if(cc == 'D') {
+                int cn = Integer.parseInt(c.split(" ")[1]);
+                for(int i = 0; i < cn; i ++) {
                     head = head.next;
                 }
-            } else if (cs == 'C') {
-                del.push(head);
-                if(head.prev != null) {
-                    head.prev.next = head.next;
-                }
+            } else if(cc == 'C') {
+                stack.push(head);
+                if(head.prev != null) head.prev.next = head.next;
                 if(head.next != null) {
                     head.next.prev = head.prev;
                     head = head.next;
-                } else {
-                    head = head.prev;
-                }
-            } else if (cs == 'Z') {
-                Node restore = del.pop();
-                if(restore.prev != null)
-                    restore.prev.next = restore;
-                if(restore.next != null)
-                    restore.next.prev = restore;
+                } else head = head.prev;
+            } else if(cc == 'Z') {
+                Node restore = stack.pop();
+                if(restore.prev != null) restore.prev.next = restore;
+                if(restore.next != null) restore.next.prev = restore;
             }
-        }
-        
-        while(head.prev != null) {
-            head = head.prev;
         }
         
         char[] arr = new char[n];
         Arrays.fill(arr, 'X');
+        
+        while(head.prev != null) {
+            head = head.prev;
+        }
         
         while(head != null) {
             arr[head.num] = 'O';
@@ -74,5 +68,5 @@ class Solution {
         }
         
         return new String(arr);
-    }
+     }
 }
