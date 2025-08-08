@@ -5,21 +5,24 @@ import java.io.InputStreamReader;
 public class Main {
 
     static int n;
-    static long[] memo;
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         n = Integer.parseInt(br.readLine());
+        
+        if(n <= 3) {
+            System.out.println(1);
+            return;
+        }
 
-        memo = new long[n+1];
-        for(int i = 0; i < n + 1; i ++) memo[i] = -1;
+        long[] dp = new long[n+1];
 
-        System.out.print(fibo(n));
-    }
+        dp[1] = dp[2] = dp[3] = 1;
 
-    public static long fibo(int n){
-        if(n <= 3) return 1;
-        if (memo[n] != -1) return memo[n];
-        return memo[n] = fibo(n - 1) + fibo(n - 3);
+        for(int i = 4; i <= n; i++){
+            dp[i] = dp[i - 1] + dp[i - 3];
+        }
+
+        System.out.println(dp[n]);
     }
 }
